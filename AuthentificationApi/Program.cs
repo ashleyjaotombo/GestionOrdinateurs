@@ -27,6 +27,12 @@ builder.Services.AddHttpClient("HttpClientName", client =>
 
 });
 
+// Client HTTP vers Keycloak
+builder.Services.AddHttpClient("Keycloak", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Keycloak:Url"] + "/");
+});
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>{

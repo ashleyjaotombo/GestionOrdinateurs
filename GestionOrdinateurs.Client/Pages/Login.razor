@@ -7,35 +7,66 @@
 
 <h3>Login</h3>
 
-<InputText @bind-Value="UserLogin" class="form-control" />
+<label>Utilisateur</label>
+<InputText @bind-Value="Username" class="form-control" />
+
+<label class="mt-2">Mot de passe</label>
+<InputText type="password" @bind-Value="Password" class="form-control" />
 
 <button class="btn btn-primary mt-2" @onclick="SaveToken">
-    Enregistrer
+    Se connecter
 </button>
 
 <p class="text-danger mt-2">@Message</p>
 
 @code
 {
-    private string UserLogin = "";
+    private string Username = "";
+    private string Password = "";
     private string Message = "";
 
+    // Ancien login (JWT généré par AuthentificationApi)
+    // private string UserLogin = "";
+    //
+    // private async Task SaveToken()
+    // {
+    //     var client = Factory.CreateClient("HttpClientName");
+    //     var response = await client.PostAsync($"Authentication/login?login={UserLogin}", null);
+    //
+    //     if (!response.IsSuccessStatusCode)
+    //     {
+    //         Message = "L'utilisateur n'existe pas";
+    //         return;
+    //     }
+    //
+    //     var token = await response.Content.ReadAsStringAsync();
+    //
+    //     // save token in session
+    //     await SessionStorage.SetItemAsync("jwtToken", token);
+    //     AuthProvider.NotifyUserAuthentication(token);
+    //     Navigation.NavigateTo("/");
+    // }
+
+    // Login via Keycloak
     private async Task SaveToken()
     {
         var client = Factory.CreateClient("HttpClientName");
-        var response = await client.PostAsync($"Authentication/login?login={UserLogin}", null);
+        var response = await client.PostAsJsonAsync("Auth/login", new { username = Username, password = Password });
 
         if (!response.IsSuccessStatusCode)
         {
-            Message = "L'utilisateur n'existe pas";
+            Message = "Utilisateur ou mot de passe incorrect";
             return;
         }
 
-        var token = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadFromJsonAsync<KeycloakTokenResponse>();
+        var token = result?.access_token ?? "";
 
         // save token in session
         await SessionStorage.SetItemAsync("jwtToken", token);
         AuthProvider.NotifyUserAuthentication(token);
         Navigation.NavigateTo("/");
     }
+
+    private record KeycloakTokenResponse(string access_token, int expires_in, string refresh_token);
 }

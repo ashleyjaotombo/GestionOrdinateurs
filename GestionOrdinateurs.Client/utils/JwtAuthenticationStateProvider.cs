@@ -54,6 +54,15 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
             {
                 claims.Add(new Claim(ClaimTypes.Name, claim.Value));
             }
+            // Claims du token Keycloak
+            else if (claim.Type == "roles")
+            {
+                claims.Add(new Claim(ClaimTypes.Role, claim.Value));
+            }
+            else if (claim.Type == "preferred_username")
+            {
+                claims.Add(new Claim(ClaimTypes.Name, claim.Value));
+            }
             else
             {
                 claims.Add(claim);

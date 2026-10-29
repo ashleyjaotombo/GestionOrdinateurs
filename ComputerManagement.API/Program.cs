@@ -2,6 +2,8 @@ using ComputerManagement.API;
 using ComputerManagement.Shared;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -85,9 +87,39 @@ builder.Services.AddAuthentication(options =>
                 return Task.CompletedTask;
             }
         };
+})
+// Tokens Keycloak
+.AddJwtBearer("Keycloak", options =>
+{
+    options.MetadataAddress = builder.Configuration["Keycloak:MetadataAddress"] ?? "";
+    options.RequireHttpsMetadata = false;
+    options.MapInboundClaims = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = builder.Configuration["Keycloak:ValidIssuer"],
+        ValidateAudience = false,
+        NameClaimType = "preferred_username",
+        RoleClaimType = "roles"
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            // Le rôle client Keycloak "adminadmin" correspond au rôle "Admin" de l'application
+            if (context.Principal?.IsInRole("adminadmin") == true)
+                ((ClaimsIdentity)context.Principal.Identity!).AddClaim(new Claim("roles", RoleEnum.Admin.ToString()));
+            return Task.CompletedTask;
+        }
+    };
 });
 
-builder.Services.AddAuthorization();
+// Autoriser le JWT de AuthentificationApi ou celui de Keycloak
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme, "Keycloak")
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 var app = builder.Build();
 app.UseCors("AllowBlazorClient");

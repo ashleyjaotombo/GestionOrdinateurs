@@ -22,7 +22,6 @@
     <ProjectReference Include="..\ComputerManagement.Shared\ComputerManagement.Shared.csproj" />
   </ItemGroup>
 
-  <!-- Copie la base SQLite dans le dossier de publication (image Docker) -->
   <ItemGroup>
     <Content Include="parcinfo.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

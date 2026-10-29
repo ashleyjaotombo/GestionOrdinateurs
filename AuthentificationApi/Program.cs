@@ -23,7 +23,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient("HttpClientName", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5176/api/");
+    client.BaseAddress = new Uri("http://computermanagement-api:5176/api/");
 
 });
 

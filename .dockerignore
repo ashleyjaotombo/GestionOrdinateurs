@@ -4,3 +4,5 @@
 .github/
 .vs/
 .vscode/
+**/*.db-shm
+**/*.db-wal

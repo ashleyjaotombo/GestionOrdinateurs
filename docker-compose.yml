@@ -1,0 +1,109 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: GestionOrdinateursDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - appnet
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8180
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    command: start-dev
+    ports:
+      - "8180:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    networks:
+      - appnet
+
+  # API d'authentification (JWT)
+  authentification-api:
+    image: ${DOCKER_ACCOUNT}/authentificationapi:latest
+    build:
+      context: .
+      dockerfile: AuthentificationApi/Dockerfile
+    container_name: authentification_api
+    ports:
+      - "5150:5150"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5150
+    depends_on:
+      - postgres
+      - keycloak
+    networks:
+      - appnet
+
+  # API de gestion du parc (ordinateurs, réparations)
+  computermanagement-api:
+    image: ${DOCKER_ACCOUNT}/computermanagementapi:latest
+    build:
+      context: .
+      dockerfile: ComputerManagement.API/Dockerfile
+    container_name: computermanagement_api
+    ports:
+      - "5176:5176"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5176
+    depends_on:
+      - postgres
+      - keycloak
+    networks:
+      - appnet
+
+  # Gateway
+  gateway:
+    image: ${DOCKER_ACCOUNT}/gestionordinateursgateway:latest
+    build:
+      context: .
+      dockerfile: GestionOrdinateurs.Gateway/Dockerfile
+    container_name: gestionordinateurs_gateway
+    ports:
+      - "5010:5010"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    depends_on:
+      - authentification-api
+      - computermanagement-api
+    networks:
+      - appnet
+
+  # Blazor
+  client:
+    image: ${DOCKER_ACCOUNT}/gestionordinateursclient:latest
+    build:
+      context: .
+      dockerfile: GestionOrdinateurs.Client/Dockerfile
+    container_name: gestionordinateurs_client
+    ports:
+      - "5000:5000"
+    depends_on:
+      - gateway
+    networks:
+      - appnet
+
+volumes:
+  postgres_data:
+  keycloak_data:
+
+networks:
+  appnet:

@@ -1,0 +1,41 @@
+@page "/login"
+
+@inject Blazored.SessionStorage.ISessionStorageService SessionStorage
+@inject NavigationManager Navigation
+@inject JwtAuthenticationStateProvider AuthProvider
+@inject IHttpClientFactory Factory
+
+<h3>Login</h3>
+
+<InputText @bind-Value="UserLogin" class="form-control" />
+
+<button class="btn btn-primary mt-2" @onclick="SaveToken">
+    Enregistrer
+</button>
+
+<p class="text-danger mt-2">@Message</p>
+
+@code
+{
+    private string UserLogin = "";
+    private string Message = "";
+
+    private async Task SaveToken()
+    {
+        var client = Factory.CreateClient("HttpClientName");
+        var response = await client.PostAsync($"Authentication/login?login={UserLogin}", null);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            Message = "L'utilisateur n'existe pas";
+            return;
+        }
+
+        var token = await response.Content.ReadAsStringAsync();
+
+        // save token in session
+        await SessionStorage.SetItemAsync("jwtToken", token);
+        AuthProvider.NotifyUserAuthentication(token);
+        Navigation.NavigateTo("/");
+    }
+}

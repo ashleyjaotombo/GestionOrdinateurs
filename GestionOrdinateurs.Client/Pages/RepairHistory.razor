@@ -1,0 +1,34 @@
+@page "/repairs"
+
+<PageTitle>Repairs history</PageTitle>
+
+<h1>Historique des réparations</h1>
+
+@if (repairs == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ordinateur</th>
+                <th>Technicien</th>
+                <th>Type de réparation</th>
+                <th>Date d'intervention</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var repair in repairs)
+            {
+                <tr>
+                    <td>@repair.ComputerName</td>
+                    <td>@repair.Technician</td>
+                    <td>@repair.RepairType</td>
+                    <td>@repair.InterventionDate.ToShortDateString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

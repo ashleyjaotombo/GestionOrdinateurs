@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="AuthentificationApi/AuthentificationApi.csproj" />
+  <Project Path="ComputerManagement.API/ComputerManagement.API.csproj" />
+  <Project Path="ComputerManagement.Shared/ComputerManagement.Shared.csproj" />
+  <Project Path="ComputerManagement.Tests/ComputerManagement.Tests.csproj" />
+  <Project Path="GestionOrdinateurs.Client/GestionOrdinateurs.Client.csproj" />
+  <Project Path="GestionOrdinateurs.Gateway/GestionOrdinateurs.Gateway.csproj" />
+</Solution>
